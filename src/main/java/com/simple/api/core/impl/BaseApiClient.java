@@ -1,7 +1,8 @@
 package com.simple.api.core.impl;
 
 import static com.simple.api.core.util.ApiUtil.getConfig;
-import static com.simple.api.core.util.TransformUtil.transform;
+import static com.simple.api.core.util.TransformUtil.fromOkHttpResponse;
+import static com.simple.api.core.util.TransformUtil.fromRestAssuredResponse;
 import static io.restassured.RestAssured.given;
 import static java.lang.Long.valueOf;
 import static java.lang.System.getProperty;
@@ -12,8 +13,10 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.base.Joiner;
 import com.simple.api.core.contract.ApiClient;
 import com.simple.api.core.contract.ApiResponse;
+import com.simple.api.core.enums.RequestMethod;
 import com.simple.api.core.modal.RestRequest;
 
 import io.restassured.builder.RequestSpecBuilder;
@@ -21,6 +24,12 @@ import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Request.Builder;
+import okhttp3.RequestBody;
 
 /****
  * 
@@ -31,8 +40,10 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class BaseApiClient implements ApiClient {
 
 	private URI baseURI;
-	
+
 	private long waitTime = valueOf(getProperty("api.wait.time", "30"));
+
+	private OkHttpClient client = new OkHttpClient();
 
 	public BaseApiClient(String urlString) {
 
@@ -45,11 +56,65 @@ public abstract class BaseApiClient implements ApiClient {
 	}
 
 	public ApiResponse send(RestRequest request) throws Exception {
+
+		Response response = given().spec(getSpecBuilder(request))
+				.request(Method.valueOf(request.getMethod().toString()));
+
+		return new ApiResponseImpl(fromRestAssuredResponse(response));
+
+	}
+
+	public ApiResponse send2(RestRequest request) throws Exception {
+
+		String urlBString = request.getPath() != null ? baseURI.toString() + request.getPath() : baseURI.toString();
 		
-		Response response = given().spec(getSpecBuilder(request)).request(Method.valueOf(request.getMethod().toString()));
+		HttpUrl.Builder urlBuilder = HttpUrl.parse(urlBString).newBuilder();
+
+		if (request.getQueryParams() != null && !request.getQueryParams().isEmpty()) {
+			request.getQueryParams().entrySet().forEach(y -> urlBuilder.addQueryParameter(y.getKey(), y.getValue()));
+		}
+
+		Builder okReq = new Request.Builder().url(urlBuilder.build().toString());
+
+		if (request.getHeaders() != null && !request.getHeaders().isEmpty()) {
+			request.getHeaders().entrySet().forEach(x -> okReq.addHeader(x.getKey(), x.getValue()));
+		}
+
+		if (request.getCookies() != null && !request.getCookies().isEmpty()) {
+			String cookieString = Joiner.on(";").withKeyValueSeparator("=").join(request.getCookies());
+
+			okReq.addHeader("Cookie", cookieString);
+		}
+
+		if (request.getBody() != null) {
+
+			@SuppressWarnings("deprecation")
+			RequestBody body = RequestBody.create(MediaType.parse(request.getContentType().getAcceptHeader()),
+					request.getBody());
+
+			if (request.getMethod().equals(RequestMethod.POST))
+				okReq.post(body);
+
+			if (request.getMethod().equals(RequestMethod.PUT))
+				okReq.put(body);
+
+			if (request.getMethod().equals(RequestMethod.PATCH))
+				okReq.patch(body);
+
+		} else {
+
+			if (request.getMethod().equals(RequestMethod.DELETE))
+				okReq.delete();
+
+			if (request.getMethod().equals(RequestMethod.GET))
+				okReq.get();
+
+		}
+
 		
-		return new ApiResponseImpl(transform(response));
+		okhttp3.Response okResponse = client.newCall(okReq.build()).execute();
 		
+		return new ApiResponseImpl(fromOkHttpResponse(okResponse)); 
 		
 	}
 
@@ -78,7 +143,7 @@ public abstract class BaseApiClient implements ApiClient {
 
 		if (!Objects.isNull(request.getBody()))
 			requestSpecBuilder.setBody(request.getBody());
-		
+
 		requestSpecBuilder.setConfig(getConfig(waitTime));
 
 		return requestSpecBuilder.build();

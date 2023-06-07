@@ -10,11 +10,14 @@ import com.simple.api.core.impl.BaseApiClient;
 import com.simple.api.core.modal.RestRequest;
 import com.simple.api.core.util.ConfigLoader;
 
+import lombok.extern.slf4j.Slf4j;
+
 /****
  * 
  * @author anjiboddupally
  *
  */
+@Slf4j
 public class VideGameTestClient extends BaseApiClient {
 
 	private static final String VIDEO_GAME_BASE_URL_STRING = ConfigLoader.getInstance().getProps().get("VIDEO_GAME_DB");
@@ -24,11 +27,15 @@ public class VideGameTestClient extends BaseApiClient {
 	}
 
 	public ApiResponse getAllVideoGames() throws Exception {
-
+		
 		RestRequest request = RestRequest.builder().method(RequestMethod.GET).path("/api/videogame").build();
 
 		await().atLeast(Duration.ONE_HUNDRED_MILLISECONDS).atMost(Duration.FIVE_SECONDS).with()
-				.pollInterval(Duration.ONE_HUNDRED_MILLISECONDS).until(() -> send(request).getStatusCode() == 200);
+				.pollInterval(Duration.ONE_HUNDRED_MILLISECONDS).until(() -> {
+					ApiResponse re = send(request);
+					log.info("Response: {}", re.getResponse());
+					return re.getStatusCode() == 200;
+				});
 
 		return send(request);
 

@@ -60,7 +60,7 @@ public class ConfigLoader {
 		} else if (env.toLowerCase().contains("dev"))
 			return "application-dev.properties";
 		else
-			return "application.properties";
+			return "application-stg.properties";
 	}
 
 }
