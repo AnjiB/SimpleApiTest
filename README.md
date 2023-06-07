@@ -10,6 +10,7 @@
 * Awaitility (to handle sync issues)
 * Jackson (For marshalling and unmarshalling)
 * RestAssured
+* OkHttp
 
 
 **How to run test in local**
