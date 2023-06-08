@@ -9,7 +9,6 @@ import com.simple.api.core.contract.ApiResponse;
 import com.simple.videogame.client.VideGameTestClient;
 import com.simple.videogame.dto.VideoGame;
 
-
 /****
  * 
  * @author anjiboddupally
@@ -17,10 +16,9 @@ import com.simple.videogame.dto.VideoGame;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class VideoGameTest {
-	
+
 	private VideGameTestClient videoGameTest;
-	
-	
+
 	@BeforeAll
 	public void setUp() {
 		videoGameTest = new VideGameTestClient();
@@ -28,11 +26,13 @@ public class VideoGameTest {
 
 	@Test
 	public void testAllVideoGames() throws Exception {
-	
+
 		ApiResponse response = videoGameTest.getAllVideoGames();
-		
+
+		Assertions.assertThat(response.getStatusCode()).isEqualTo(200);
+
 		VideoGame[] videoGames = response.getResponseBodyAs(VideoGame[].class);
-		
+
 		Assertions.assertThat(videoGames.length).isGreaterThan(0);
 	}
 }
