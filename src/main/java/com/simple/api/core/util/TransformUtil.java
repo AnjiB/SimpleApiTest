@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Maps;
 import com.simple.api.core.modal.RestResponse;
 import com.simple.api.core.modal.RestResponse.RestResponseBuilder;
@@ -28,7 +29,7 @@ public class TransformUtil {
 	private TransformUtil() {
 	};
 
-	private final static ObjectMapper objMapper = new ObjectMapper();
+	private final static ObjectMapper objMapper = getObjMapper();
 
 	private final static XmlMapper xmlMapper = new XmlMapper();
 
@@ -92,5 +93,12 @@ public class TransformUtil {
 
 		// check for non null wherever this method is being called
 		return null;
+	}
+	
+	
+	private static ObjectMapper getObjMapper() {
+		ObjectMapper objMapper = new ObjectMapper();
+		objMapper.registerModule(new JavaTimeModule());
+		return objMapper;
 	}
 }
