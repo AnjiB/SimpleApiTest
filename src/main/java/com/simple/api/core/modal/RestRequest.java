@@ -1,9 +1,11 @@
 package com.simple.api.core.modal;
 
+import java.util.List;
 import java.util.Map;
 
 import com.simple.api.core.enums.RequestMethod;
 
+import io.restassured.filter.Filter;
 import io.restassured.http.ContentType;
 import lombok.Builder;
 import lombok.Builder.Default;
@@ -30,6 +32,9 @@ public class RestRequest {
 	private String path;
 	
 	private RequestMethod method;
+	
+	// RestAssured specific. In other frameworks, it could be Interceptors or something else.
+	private List<Filter> filters;
 	
 	@Default
 	private ContentType contentType = ContentType.JSON;

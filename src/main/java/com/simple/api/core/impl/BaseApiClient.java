@@ -143,6 +143,9 @@ public abstract class BaseApiClient implements ApiClient {
 
 		if (!Objects.isNull(request.getBody()))
 			requestSpecBuilder.setBody(request.getBody());
+		
+		if(request.getFilters() != null && !request.getFilters().isEmpty())
+			requestSpecBuilder.addFilters(request.getFilters());
 
 		requestSpecBuilder.setConfig(getConfig(waitTime));
 
