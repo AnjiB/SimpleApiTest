@@ -23,6 +23,7 @@ import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -46,7 +47,11 @@ public abstract class BaseApiClient implements ApiClient {
 	private OkHttpClient client = new OkHttpClient();
 
 	public BaseApiClient(String urlString) {
-
+		setBaseUri(urlString);	
+	}
+	
+	public void setBaseUri(@NonNull String urlString) {
+		
 		try {
 			baseURI = new URI(urlString);
 		} catch (URISyntaxException e) {
@@ -54,7 +59,20 @@ public abstract class BaseApiClient implements ApiClient {
 			throw new IllegalArgumentException("Request url is malformed");
 		}
 	}
+	
+	public URI getBaseUri() {
+		return this.baseURI;
+	}
 
+	
+	/***
+	 * 
+	 * RestAssured Implementation
+	 * 
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
 	public ApiResponse send(RestRequest request) throws Exception {
 
 		Response response = given().spec(getSpecBuilder(request))
@@ -63,10 +81,20 @@ public abstract class BaseApiClient implements ApiClient {
 		return new ApiResponseImpl(fromRestAssuredResponse(response));
 
 	}
+	
+	
+	
+	/***
+	 * OK Http Implementation
+	 * 
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
 
 	public ApiResponse send2(RestRequest request) throws Exception {
 
-		String urlBString = request.getPath() != null ? baseURI.toString() + request.getPath() : baseURI.toString();
+		String urlBString = request.getPath() != null ? getBaseUri().toString() + request.getPath() : getBaseUri().toString();
 		
 		HttpUrl.Builder urlBuilder = HttpUrl.parse(urlBString).newBuilder();
 
@@ -122,7 +150,7 @@ public abstract class BaseApiClient implements ApiClient {
 
 		RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
 
-		requestSpecBuilder.setBaseUri(baseURI);
+		requestSpecBuilder.setBaseUri(getBaseUri());
 
 		if (request.getContentType() != null) {
 			requestSpecBuilder.setContentType(request.getContentType());
