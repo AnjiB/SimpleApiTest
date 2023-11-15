@@ -19,6 +19,7 @@ import com.simple.api.core.contract.ApiResponse;
 import com.simple.api.core.enums.RequestMethod;
 import com.simple.api.core.modal.RestRequest;
 
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.Method;
 import io.restassured.response.Response;
@@ -174,6 +175,9 @@ public abstract class BaseApiClient implements ApiClient {
 		
 		if(request.getFilters() != null && !request.getFilters().isEmpty())
 			requestSpecBuilder.addFilters(request.getFilters());
+		
+		if(Boolean.valueOf(System.getProperty("logRestAssured", "false")))
+			requestSpecBuilder.addFilter(new AllureRestAssured());
 
 		requestSpecBuilder.setConfig(getConfig(waitTime));
 

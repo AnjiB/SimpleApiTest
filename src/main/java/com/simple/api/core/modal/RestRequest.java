@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.simple.api.core.enums.RequestMethod;
 
+import io.restassured.authentication.AuthenticationScheme;
 import io.restassured.filter.Filter;
 import io.restassured.http.ContentType;
 import lombok.Builder;
@@ -38,5 +39,7 @@ public class RestRequest {
 	
 	@Default
 	private ContentType contentType = ContentType.JSON;
+	
+	private AuthenticationScheme auth;
 
 }
