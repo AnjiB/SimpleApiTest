@@ -43,7 +43,7 @@ public class ConfigLoader {
 	public Map<String, String> getProps() {
 
 		try {
-			properties.load(new FileInputStream("src/main/resources/" + getPropfileName()));
+			properties.load(new FileInputStream("src/test/resources/" + getPropfileName()));
 			if(propMap == null)
 				propMap = Maps.newHashMap(Maps.fromProperties(properties));
 				
